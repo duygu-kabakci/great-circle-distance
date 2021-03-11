@@ -2,9 +2,18 @@ import argparse
 import logging
 from distance_calculate import Location, DistanceCalculate
 
-from input_loader import InputReader, ListOp, OutWriter
+from input_loader import InputReader, OutWriter
 
 EARTH_RADIUS = 6371
+
+def get_closer_customers(customer_data: list, target_location: Location, limit:int):
+    dist_calc = DistanceCalculate(EARTH_RADIUS)
+    customers = []
+    for customer in customer_data:
+        d = dist_calc.great_circle_dist(target_location, Location(customer.latitude, customer.longitude))
+        if (d <= limit):
+            customers.append(customer)
+    return customers
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='[%(levelname)s %(asctime)s] %(message)s')
@@ -19,17 +28,15 @@ if __name__ == '__main__':
 
     customer_data = InputReader.load_data(args.customer_list)
 
+
     office_coord_x,  office_coord_y= 53.339428, -6.257664
     office_loc = Location(office_coord_x, office_coord_y)
-    dist_calc = DistanceCalculate(EARTH_RADIUS)
-    #TODO: validate input has latitude and longitude all the time.
-    for customer in customer_data:
-        d = dist_calc.great_circle_dist(office_loc, Location(customer["latitude"], customer["longitude"] ) )
-        customer["distance"] = d
 
-    customer_ops = ListOp(customer_data)
-    customer_ops.filter_data(args.distance, "distance")
-    customer_ops.sort_data("user_id")
-    results = customer_ops.getNameAndIDs()
+    close_customers = get_closer_customers(customer_data, office_loc, args.distance)
+    # sort by user_id
+    close_customers = sorted(close_customers, key=lambda k: k.user_id)
+    # get name and IDs
+    results = list(map(lambda d: d.getNameAndIDs(), close_customers))
 
+    #output names and user_ids
     OutWriter.output(args.output_name, results)

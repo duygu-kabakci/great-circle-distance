@@ -9,8 +9,7 @@ class InputReader:
         try:
             with open(file_name, "r") as json_file:
                 for line in json_file:
-                    data.append(json.loads(line))
-                #json_file.close()
+                    data.append(Customer(**json.loads(line)) )
         except FileNotFoundError:
             logging.error("Input file not file: {}".format(file_name) )
         if len(data) == 0:
@@ -27,32 +26,13 @@ class OutWriter:
             f.write(str(out))
             f.close()
 
-# performs query/sort/filter operations on dictionaries. Data should be list of dictionaries
-class ListOp:
-    def __init__(self, data: list):
-        """
+class Customer:
+    def __init__(self, user_id:int, name: str, latitude: float, longitude: float):
+        self.latitude = latitude
+        self.longitude = longitude
+        self.user_id = user_id
+        self.name = name
 
-        :type data: list[dict]
-        """
-        self.data = data
-    # filter customer list by key and limit
-    def filter_data(self, limit: float, key: str):
-        try:
-            self.data = list(filter(lambda d: d[key] <= limit, self.data))
-        except KeyError:
-            logging.error("Filter key does not exist!: {}".format(key))
-            return False
-        return True
+    def getNameAndIDs(self) -> tuple:
+        return (self.name, self.user_id)
 
-    #sort customer list by key
-    def sort_data(self, key: str):
-        try:
-            self.data = sorted(self.data, key=lambda k: k[key])
-        except KeyError:
-            logging.error("Sort key does not exist!: {}".format(key))
-            return False
-        return True
-
-    # query name and user id of customer list data
-    def getNameAndIDs(self):
-        return list(map(lambda d: (d["name"], d["user_id"]), self.data)) # burda keywordun sabit olmasi kotu? anlamsiz context
