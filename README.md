@@ -31,3 +31,7 @@ You should specify distance limit in KM and input should be the same format as c
 ## Run Tests
 
 `pytest -v` will run all the unit tests with test names.
+
+## Output
+
+Output of data/customer.txt can be found in data/output.txt as output sample.
